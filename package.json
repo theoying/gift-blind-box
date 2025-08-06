@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "description": "礼物盲盒 Telegram Mini App - 一款基于Telegram Mini Apps的礼物盲盒应用",
-  "homepage": "https://telegram-mini-apps.github.io/gift-blind-box",
+  "homepage": "https://theoying.github.io/gift-blind-box",
   "scripts": {
     "deploy": "gh-pages -d dist",
     "dev": "vite",

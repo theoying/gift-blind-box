@@ -93,7 +93,7 @@ npm run lint
 
 - **构建输出目录**: `dist/`
 - **部署分支**: `gh-pages` (自动创建)
-- **访问地址**: `https://yingjiayu.github.io/gift-blind-box/`
+- **访问地址**: `https://theoying.github.io/gift-blind-box/`
 
 #### 部署状态
 
