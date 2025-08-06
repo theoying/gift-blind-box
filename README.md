@@ -71,6 +71,56 @@ npm run build
 npm run lint
 ```
 
+## 部署指南
+
+### GitHub Pages 自动部署
+
+本项目配置了GitHub Actions自动部署到GitHub Pages。
+
+#### 部署流程
+
+1. **自动触发**: 推送到 `master` 或 `main` 分支时自动触发部署
+2. **手动触发**: 在GitHub Actions页面手动触发部署
+3. **构建步骤**:
+   - 安装依赖 (`npm ci`)
+   - 代码检查 (`npm run lint`)
+   - 类型检查 (`npx tsc --noEmit`)
+   - 构建项目 (`npm run build`)
+   - 验证构建输出
+   - 部署到GitHub Pages
+
+#### 部署配置
+
+- **构建输出目录**: `dist/`
+- **部署分支**: `gh-pages` (自动创建)
+- **访问地址**: `https://yingjiayu.github.io/gift-blind-box/`
+
+#### 部署状态
+
+- ✅ 自动构建和部署
+- ✅ 代码质量检查
+- ✅ 类型安全检查
+- ✅ 构建输出验证
+- ✅ 部署状态通知
+
+#### 故障排除
+
+如果部署失败，请检查：
+
+1. **构建错误**: 查看GitHub Actions日志中的构建步骤
+2. **依赖问题**: 确保 `package.json` 中的依赖版本正确
+3. **权限问题**: 确保仓库有GitHub Pages权限
+4. **分支问题**: 确保推送到正确的分支 (`master` 或 `main`)
+
+### 手动部署
+
+如果需要手动部署到其他平台：
+
+1. 构建项目: `npm run build`
+2. 将 `dist/` 目录内容上传到Web服务器
+3. 在Telegram Bot中配置WebApp URL
+4. 设置Bot命令和菜单
+
 ## 游戏机制
 
 ### 盲盒系统
@@ -86,13 +136,6 @@ npm run lint
 ### 分享奖励
 - **邀请奖励**: 邀请2个好友获得B系列盲盒
 - **升级奖励**: 分享给好友升级A系列为B系列
-
-## 部署说明
-
-1. 构建项目: `npm run build`
-2. 部署到Web服务器
-3. 在Telegram Bot中配置WebApp URL
-4. 设置Bot命令和菜单
 
 ## 本地存储
 

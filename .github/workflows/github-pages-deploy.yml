@@ -1,57 +1,132 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+# GitHub Pages 部署工作流
+name: Deploy to GitHub Pages
 
 on:
-  # Runs on pushes targeting the default branch
+  # 推送到主分支时触发
   push:
-    branches: ['master']
-
-  # Allows you to run this workflow manually from the Actions tab
+    branches: ['master', 'main']
+  
+  # 手动触发部署
   workflow_dispatch:
 
-# Sets the GITHUB_TOKEN permissions to allow deployment to GitHub Pages
+# 设置权限
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow one concurrent deployment
+# 允许一个并发部署，取消进行中的部署
 concurrency:
   group: 'pages'
   cancel-in-progress: true
 
 jobs:
-  # Single deploy job since we're just deploying
-  deploy:
+  # 构建和部署任务
+  build-and-deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - name: Checkout
+      # 检出代码
+      - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Setup node
-        uses: actions/setup-node@v3
         with:
-          node-version: 18
+          fetch-depth: 0
+
+      # 设置 Node.js 环境
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Install deps
-        run: npm ci
+      # 安装依赖
+      - name: Install dependencies
+        run: |
+          echo "📦 Installing dependencies..."
+          npm ci --prefer-offline --no-audit
+          npm cache verify
+          echo "✅ Dependencies installed successfully"
+        timeout-minutes: 5
 
-      - name: Build
-        run: npm run build
+      # 运行代码检查
+      - name: Run linting
+        run: |
+          echo "🔍 Running linting..."
+          npm run lint
+          echo "✅ Linting completed"
+        timeout-minutes: 3
 
+      # 类型检查
+      - name: Type check
+        run: |
+          echo "🔍 Running type check..."
+          npx tsc --noEmit
+          echo "✅ Type check completed"
+        timeout-minutes: 2
+
+      # 构建项目
+      - name: Build project
+        run: |
+          echo "🏗️ Building project..."
+          npm run build
+          echo "✅ Build completed"
+        env:
+          NODE_ENV: production
+          CI: true
+        timeout-minutes: 8
+
+      # 验证构建输出
+      - name: Verify build output
+        run: |
+          echo "🔍 Verifying build output..."
+          if [ ! -d "dist" ]; then
+            echo "❌ Build output directory 'dist' not found!"
+            exit 1
+          fi
+          
+          # 检查是否有必要的文件
+          if [ ! -f "dist/index.html" ]; then
+            echo "❌ index.html not found in dist directory!"
+            exit 1
+          fi
+          
+          echo "✅ Build output verified"
+          echo "📁 Build output contents:"
+          ls -la dist/
+          echo "📄 index.html size: $(wc -c < dist/index.html) bytes"
+        timeout-minutes: 2
+
+      # 设置 GitHub Pages
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v4
 
+      # 上传构建产物
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload dist repository
           path: './dist'
 
+      # 部署到 GitHub Pages
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      # 部署完成通知
+      - name: Deployment status
+        run: |
+          if [ "${{ steps.deployment.outcome }}" == "success" ]; then
+            echo "🎉 Deployment successful!"
+            echo "🌐 Your site is live at: ${{ steps.deployment.outputs.page_url }}"
+            echo "📅 Deployed at: $(date)"
+            echo "🔗 Repository: ${{ github.repository }}"
+            echo "📝 Commit: ${{ github.sha }}"
+            echo "👤 Author: ${{ github.actor }}"
+          else
+            echo "❌ Deployment failed!"
+            echo "🔍 Check the logs above for more details"
+            exit 1
+          fi
