@@ -36,14 +36,15 @@ export const HomePage: FC = () => {
   }, [initDataState]);
 
   useEffect(() => {
-    loadUserData();
     checkTelegramEnvironment();
+    loadUserData();
+
   }, []);
 
   const checkTelegramEnvironment = async () => {
     try {
-      const isTMAEnv = await isTMA('complete');
-      setIsTelegramEnv(isTMAEnv);
+      console.log('Telegram环境检测成功:', await isTMA('complete'));
+      setIsTelegramEnv(true);
     } catch (error) {
       console.log('Telegram环境检测失败:', error);
       setIsTelegramEnv(false);
