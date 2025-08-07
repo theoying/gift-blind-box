@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Section, Cell, Button, List, Badge } from '@telegram-apps/telegram-ui';
+import { useState, useEffect, useMemo } from 'react';
+import { Section, Cell, Button, List, Badge, Avatar } from '@telegram-apps/telegram-ui';
+import { initDataState as _initDataState, useSignal, isTMA } from '@telegram-apps/sdk-react';
 import type { FC } from 'react';
 
 import { Page } from '@/components/Page.tsx';
@@ -24,12 +25,30 @@ export const HomePage: FC = () => {
   const [userGifts, setUserGifts] = useState<UserGift[]>([]);
   const [openingBox, setOpeningBox] = useState<string | null>(null);
   const [openedGift, setOpenedGift] = useState<Gift | null>(null);
+  const [isTelegramEnv, setIsTelegramEnv] = useState(false);
 
   const userId = 'current-user'; // 模拟用户ID
 
+  // 获取Telegram用户信息
+  const initDataState = useSignal(_initDataState);
+  const telegramUser = useMemo(() => {
+    return initDataState?.user;
+  }, [initDataState]);
+
   useEffect(() => {
     loadUserData();
+    checkTelegramEnvironment();
   }, []);
+
+  const checkTelegramEnvironment = async () => {
+    try {
+      const isTMAEnv = await isTMA('complete');
+      setIsTelegramEnv(isTMAEnv);
+    } catch (error) {
+      console.log('Telegram环境检测失败:', error);
+      setIsTelegramEnv(false);
+    }
+  };
 
   const loadUserData = () => {
     setUserStars(DataService.getUserStars());
@@ -89,14 +108,50 @@ export const HomePage: FC = () => {
     }
   };
 
+  // 获取用户显示名称
+  const getUserDisplayName = () => {
+    if (!telegramUser) return null;
+    
+    const { first_name, last_name, username } = telegramUser;
+    // 优先显示完整的姓名（first_name + last_name）
+    if (first_name && last_name) {
+      return `${first_name} ${last_name}`;
+    }
+    // 其次显示first_name
+    if (first_name) {
+      return first_name;
+    }
+    // 最后显示username
+    if (username) {
+      return `@${username}`;
+    }
+    return null;
+  };
+
   return (
     <Page back={false}>
       {/* 用户信息 */}
       <div className="p-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold">礼物盲盒</h1>
-            <p className="text-sm opacity-90">收集精美礼物</p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-xl font-bold">礼物盲盒</h1>
+              <p className="text-sm opacity-90">收集精美礼物</p>
+            </div>
+            {/* Telegram用户信息 */}
+            {isTelegramEnv && telegramUser && (
+              <div className="flex items-center gap-2 ml-4">
+                <Avatar
+                  width={28}
+                  height={28}
+                  src={telegramUser.photo_url}
+                  alt={getUserDisplayName() || 'User'}
+                />
+                <div className="text-sm">
+                  <div className="font-medium">{getUserDisplayName()}</div>
+                </div>
+              </div>
+            )}
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold">⭐ {userStars}</div>

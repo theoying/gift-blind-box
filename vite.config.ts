@@ -23,7 +23,7 @@ export default defineConfig({
     // Creates a custom SSL certificate valid for the local machine.
     // Using this plugin requires admin rights on the first dev-mode launch.
     // https://www.npmjs.com/package/vite-plugin-mkcert
-    process.env.HTTPS && mkcert(),
+    mkcert(),
   ],
   build: {
     target: 'esnext',
@@ -32,6 +32,8 @@ export default defineConfig({
   server: {
     // Exposes your dev server and makes it accessible for the devices in the same network.
     host: true,
+    https: true,
+    port: 5173,
   },
 });
 
